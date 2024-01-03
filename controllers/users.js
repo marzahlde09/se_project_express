@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const User = require("../models/user");
 const {
   VALIDATION_ERROR_CODE,
@@ -17,10 +18,13 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUser = (req, res) => {
+  if(!mongoose.Types.ObjectId.isValid(req.params.id)){
+    return res.status(DOES_NOT_EXIST_ERROR_CODE).send("User ID not found");
+  }
   User.findById(req.params.id)
     .orFail(() => {
-      const error = new Error("Item ID not found");
-      error.statusCode = 404;
+      const error = new Error("User ID not found");
+      error.statusCode = DOES_NOT_EXIST_ERROR_CODE;
       throw error;
     })
     .then((user) => res.send({ data: user }))
@@ -41,10 +45,10 @@ module.exports.createUser = (req, res) => {
         return res
           .status(VALIDATION_ERROR_CODE)
           .send({ message: "Invalid user data" });
-      } else {
+      }
         return res
           .status(DEFAULT_ERROR_CODE)
           .send({ message: "An error has occurred on the server." });
-      }
+
     });
 };
