@@ -18,8 +18,11 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUser = (req, res) => {
-  if(!mongoose.Types.ObjectId.isValid(req.params.id)){
-    return res.status(DOES_NOT_EXIST_ERROR_CODE).send("User ID not found");
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    console.log("You're where you're supposed to be");
+    return res
+      .status(VALIDATION_ERROR_CODE)
+      .send({ message: "Invalid user ID" });
   }
   User.findById(req.params.id)
     .orFail(() => {
@@ -46,9 +49,8 @@ module.exports.createUser = (req, res) => {
           .status(VALIDATION_ERROR_CODE)
           .send({ message: "Invalid user data" });
       }
-        return res
-          .status(DEFAULT_ERROR_CODE)
-          .send({ message: "An error has occurred on the server." });
-
+      return res
+        .status(DEFAULT_ERROR_CODE)
+        .send({ message: "An error has occurred on the server." });
     });
 };
