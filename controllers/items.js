@@ -38,7 +38,6 @@ module.exports.createItem = (req, res) => {
 
 module.exports.deleteItem = (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.itemId)) {
-    console.log("You made it here!");
     return res
       .status(VALIDATION_ERROR_CODE)
       .send({ message: "Invalid item ID" });
@@ -52,8 +51,14 @@ module.exports.deleteItem = (req, res) => {
     .then((item) => res.send({ data: item }))
     .catch((err) => {
       console.error(err);
-      return res.status(err.statusCode).send({ message: err.message });
+      if (err.statusCode === DOES_NOT_EXIST_ERROR_CODE) {
+        return res.status(err.statusCode).send({ message: err.message });
+      }
+      return res
+        .status(DEFAULT_ERROR_CODE)
+        .send({ message: "An error has occurred on the server." });
     });
+  return res;
 };
 
 module.exports.likeItem = (req, res) => {
@@ -75,8 +80,14 @@ module.exports.likeItem = (req, res) => {
     .then((item) => res.send({ data: item }))
     .catch((err) => {
       console.error(err);
-      return res.status(err.statusCode).send({ message: err.message });
+      if (err.statusCode === DOES_NOT_EXIST_ERROR_CODE) {
+        return res.status(err.statusCode).send({ message: err.message });
+      }
+      return res
+        .status(DEFAULT_ERROR_CODE)
+        .send({ message: "An error has occurred on the server." });
     });
+  return res;
 };
 
 module.exports.dislikeItem = (req, res) => {
@@ -98,6 +109,12 @@ module.exports.dislikeItem = (req, res) => {
     .then((item) => res.send({ data: item }))
     .catch((err) => {
       console.error(err);
-      return res.status(err.statusCode).send({ message: err.message });
+      if (err.statusCode === DOES_NOT_EXIST_ERROR_CODE) {
+        return res.status(err.statusCode).send({ message: err.message });
+      }
+      return res
+        .status(DEFAULT_ERROR_CODE)
+        .send({ message: "An error has occurred on the server." });
     });
+  return res;
 };

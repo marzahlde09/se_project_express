@@ -19,7 +19,6 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUser = (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-    console.log("You're where you're supposed to be");
     return res
       .status(VALIDATION_ERROR_CODE)
       .send({ message: "Invalid user ID" });
@@ -33,8 +32,14 @@ module.exports.getUser = (req, res) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       console.error(err);
-      return res.status(err.statusCode).send({ message: err.message });
+      if (err.statusCode === DOES_NOT_EXIST_ERROR_CODE) {
+        return res.status(err.statusCode).send({ message: err.message });
+      }
+      return res
+        .status(DEFAULT_ERROR_CODE)
+        .send({ message: "An error has occurred on the server." });
     });
+  return res;
 };
 
 module.exports.createUser = (req, res) => {

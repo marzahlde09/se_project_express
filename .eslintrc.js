@@ -8,13 +8,13 @@ module.exports = {
   overrides: [
     {
       files: ["*"],
-      rules: {
-        "no-underscore-dangle": "off",
-      },
     },
   ],
   parserOptions: {
     ecmaVersion: "latest",
   },
-  rules: {},
+  rules: {
+    "no-underscore-dangle": ["error", { allow: ["_id"] }],
+    "no-console": "off",
+  },
 };
