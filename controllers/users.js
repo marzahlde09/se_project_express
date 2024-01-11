@@ -65,8 +65,16 @@ module.exports.createUser = (req, res) => {
   bcrypt
     .hash(password, 10)
     .then((hash) => User.create({ email, password: hash, name, avatar }))
-    .then(({ email, name, avatar, _id, __v }) =>
-      res.send({ data: { email, name, avatar, _id, __v } }),
+    .then((user) =>
+      res.send({
+        data: {
+          email: user.email,
+          name: user.name,
+          avatar: user.avatar,
+          _id: user._id,
+          __v: user.__v,
+        },
+      }),
     )
     .catch((err) => {
       console.error(err.name);
@@ -104,5 +112,8 @@ module.exports.login = (req, res) => {
       if (err.statusCode === VALIDATION_ERROR_CODE) {
         return res.status(err.statusCode).send({ message: err.message });
       }
+      return res
+        .status(DEFAULT_ERROR_CODE)
+        .send({ message: "An error has occurred on the server." });
     });
 };

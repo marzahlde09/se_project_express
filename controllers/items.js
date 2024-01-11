@@ -46,7 +46,7 @@ module.exports.deleteItem = (req, res) => {
       .send({ message: "Invalid item ID" });
   }
 
-  Item.findById(itemId)
+  return Item.findById(itemId)
     .orFail(() => {
       const error = new Error("Clothing item ID not found");
       error.statusCode = DOES_NOT_EXIST_ERROR_CODE;
@@ -81,7 +81,6 @@ module.exports.deleteItem = (req, res) => {
         .status(DEFAULT_ERROR_CODE)
         .send({ message: "An error has occurred on the server." });
     });
-  return res;
 };
 
 module.exports.likeItem = (req, res) => {
@@ -90,7 +89,7 @@ module.exports.likeItem = (req, res) => {
       .status(VALIDATION_ERROR_CODE)
       .send({ message: "Invalid item ID" });
   }
-  Item.findByIdAndUpdate(
+  return Item.findByIdAndUpdate(
     req.params.itemId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
@@ -110,7 +109,6 @@ module.exports.likeItem = (req, res) => {
         .status(DEFAULT_ERROR_CODE)
         .send({ message: "An error has occurred on the server." });
     });
-  return res;
 };
 
 module.exports.dislikeItem = (req, res) => {
@@ -119,7 +117,7 @@ module.exports.dislikeItem = (req, res) => {
       .status(VALIDATION_ERROR_CODE)
       .send({ message: "Invalid item ID" });
   }
-  Item.findByIdAndUpdate(
+  return Item.findByIdAndUpdate(
     req.params.itemId,
     { $pull: { likes: req.user._id } },
     { new: true },
@@ -139,5 +137,4 @@ module.exports.dislikeItem = (req, res) => {
         .status(DEFAULT_ERROR_CODE)
         .send({ message: "An error has occurred on the server." });
     });
-  return res;
 };

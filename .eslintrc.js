@@ -14,7 +14,7 @@ module.exports = {
     ecmaVersion: "latest",
   },
   rules: {
-    "no-underscore-dangle": ["error", { allow: ["_id"] }],
+    "no-underscore-dangle": ["error", { allow: ["_id", "__v"] }],
     "no-console": "off",
   },
 };
