@@ -9,7 +9,6 @@ const {
 
 module.exports.getItems = (req, res) => {
   Item.find({})
-    .populate("owner")
     .then((items) => res.send({ data: items }))
     .catch((err) => {
       console.error(err);
