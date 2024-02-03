@@ -1,10 +1,8 @@
 const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
 const validator = require("validator");
-const {
-  VALIDATION_ERROR_CODE,
-  UNAUTHORIZED_ERROR_CODE,
-} = require("../utils/errors");
+const UnauthorizedError = require("../errors/UnauthorizedError");
+const BadRequestError = require("../errors/BadRequestError");
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -46,30 +44,26 @@ userSchema.statics.findUserByCredentials = function findUserByCredentials(
   password,
 ) {
   if (!email) {
-    const error = new Error("Email is required");
-    error.statusCode = VALIDATION_ERROR_CODE;
-    return Promise.reject(error);
+    return Promise.reject(new BadRequestError("Email is required"));
   }
 
   if (!password) {
-    const error = new Error("Password is required");
-    error.statusCode = VALIDATION_ERROR_CODE;
-    return Promise.reject(error);
+    return Promise.reject(new BadRequestError("Password is required"));
   }
 
   return this.findOne({ email })
     .select("+password")
     .then((user) => {
       if (!user) {
-        const error = new Error("Incorrect password or email");
-        error.statusCode = UNAUTHORIZED_ERROR_CODE;
-        return Promise.reject(error);
+        return Promise.reject(
+          new UnauthorizedError("Incorrect password or email"),
+        );
       }
       return bcrypt.compare(password, user.password).then((matched) => {
         if (!matched) {
-          const error = new Error("Incorrect password or email");
-          error.statusCode = UNAUTHORIZED_ERROR_CODE;
-          return Promise.reject(error);
+          return Promise.reject(
+            new UnauthorizedError("Incorrect password or email"),
+          );
         }
         return user;
       });

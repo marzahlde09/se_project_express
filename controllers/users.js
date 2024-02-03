@@ -2,34 +2,27 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../utils/config");
 const User = require("../models/user");
-const {
-  VALIDATION_ERROR_CODE,
-  DEFAULT_ERROR_CODE,
-  DOES_NOT_EXIST_ERROR_CODE,
-  UNAUTHORIZED_ERROR_CODE,
-  CONFLICTING_RESOURCE_ERROR_CODE,
-} = require("../utils/errors");
+const BadRequestError = require("../errors/BadRequestError");
+const NotFoundError = require("../errors/NotFoundError");
+const ConflictError = require("../errors/ConflictError");
+const UnauthorizedError = require("../errors/UnauthorizedError");
 
-module.exports.getCurrentUser = (req, res) => {
+module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .orFail(() => {
-      const error = new Error("User ID not found");
-      error.statusCode = DOES_NOT_EXIST_ERROR_CODE;
-      throw error;
+      next(new NotFoundError("User ID not found"));
     })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      console.error(err);
-      if (err.statusCode === DOES_NOT_EXIST_ERROR_CODE) {
-        return res.status(err.statusCode).send({ message: err.message });
+      if (err.name === "CastError") {
+        next(new BadRequestError("The id string is in an invalid format"));
+      } else {
+        next(err);
       }
-      return res
-        .status(DEFAULT_ERROR_CODE)
-        .send({ message: "An error has occurred on the server." });
     });
 };
 
-module.exports.updateProfile = (req, res) => {
+module.exports.updateProfile = (req, res, next) => {
   const { name, avatar } = req.body;
 
   User.findByIdAndUpdate(
@@ -38,28 +31,21 @@ module.exports.updateProfile = (req, res) => {
     { new: true, runValidators: true },
   )
     .orFail(() => {
-      const error = new Error("User ID not found");
-      error.statusCode = DOES_NOT_EXIST_ERROR_CODE;
-      throw error;
+      next(new NotFoundError("User ID not found"));
     })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      console.error(err);
-      if (err.statusCode === DOES_NOT_EXIST_ERROR_CODE) {
-        return res.status(err.statusCode).send({ message: err.message });
+      if (err.name === "CastError") {
+        next(new BadRequestError("The id string is in an invalid format"));
+      } else if (err.name === "ValidationError") {
+        next(new BadRequestError("Invalid user data"));
+      } else {
+        next(err);
       }
-      if (err.name === "ValidationError") {
-        return res
-          .status(VALIDATION_ERROR_CODE)
-          .send({ message: "Invalid user data" });
-      }
-      return res
-        .status(DEFAULT_ERROR_CODE)
-        .send({ message: "An error has occurred on the server." });
     });
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const { email, password, name, avatar } = req.body;
 
   bcrypt
@@ -77,24 +63,17 @@ module.exports.createUser = (req, res) => {
       }),
     )
     .catch((err) => {
-      console.error(err.name);
       if (err.name === "ValidationError") {
-        return res
-          .status(VALIDATION_ERROR_CODE)
-          .send({ message: "Invalid user data" });
+        next(new BadRequestError("Invalid user data"));
+      } else if (err.name === "MongoServerError") {
+        next(new ConflictError("That email is already associated with a user"));
+      } else {
+        next(err);
       }
-      if (err.name === "MongoServerError") {
-        return res.status(CONFLICTING_RESOURCE_ERROR_CODE).send({
-          message: "That email is already associated with a user",
-        });
-      }
-      return res
-        .status(DEFAULT_ERROR_CODE)
-        .send({ message: "An error has occurred on the server." });
     });
 };
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
@@ -105,15 +84,12 @@ module.exports.login = (req, res) => {
       return res.send({ token });
     })
     .catch((err) => {
-      console.error(err.name);
-      if (err.statusCode === UNAUTHORIZED_ERROR_CODE) {
-        return res.status(err.statusCode).send({ message: err.message });
+      if (err.statusCode === 401) {
+        next(new UnauthorizedError(err.message));
+      } else if (err.statusCode === 400) {
+        next(new BadRequestError(err.message));
+      } else {
+        next(err);
       }
-      if (err.statusCode === VALIDATION_ERROR_CODE) {
-        return res.status(err.statusCode).send({ message: err.message });
-      }
-      return res
-        .status(DEFAULT_ERROR_CODE)
-        .send({ message: "An error has occurred on the server." });
     });
 };
