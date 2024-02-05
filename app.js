@@ -5,6 +5,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const { errorHandler } = require("./middlewares/error-handler");
 
+require("dotenv").config();
 const { PORT = 3001 } = process.env;
 const app = express();
 
