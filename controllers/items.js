@@ -26,9 +26,9 @@ module.exports.createItem = (req, res, next) => {
 };
 
 module.exports.deleteItem = (req, res, next) => {
-  const { itemId } = req.params;
+  const { id } = req.params;
 
-  return Item.findById(itemId)
+  return Item.findById(id)
     .orFail(() => {
       next(new NotFoundError("Clothing item ID not found"));
     })
@@ -38,7 +38,7 @@ module.exports.deleteItem = (req, res, next) => {
           new ForbiddenError("You do not have permission to delete that item"),
         );
       }
-      return Item.findByIdAndDelete(itemId)
+      return Item.findByIdAndDelete(id)
         .then(res.send({ data: item }))
         .catch((err) => {
           next(err);
@@ -55,7 +55,7 @@ module.exports.deleteItem = (req, res, next) => {
 
 module.exports.likeItem = (req, res, next) => {
   Item.findByIdAndUpdate(
-    req.params.itemId,
+    req.params.id,
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
@@ -74,7 +74,7 @@ module.exports.likeItem = (req, res, next) => {
 
 module.exports.dislikeItem = (req, res, next) => {
   Item.findByIdAndUpdate(
-    req.params.itemId,
+    req.params.id,
     { $pull: { likes: req.user._id } },
     { new: true },
   )
