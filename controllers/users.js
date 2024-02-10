@@ -7,7 +7,7 @@ const ConflictError = require("../errors/ConflictError");
 const UnauthorizedError = require("../errors/UnauthorizedError");
 require("dotenv").config();
 
-const { JWT_SECRET } = process.env;
+const { JWT_SECRET = "dev-key" } = process.env;
 
 module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)

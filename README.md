@@ -12,6 +12,11 @@ API with routers for manipulating users and clothing items in a database for the
 - REST API
 - API requests
 
+## Frontend and backend domains
+
+[url-to-website](https://wtwr.hollandweather.net)
+[url-to-api](https://api.wtwr.hollandweather.net)
+
 ## Screenshots of project features
 
 Successfully create a user
